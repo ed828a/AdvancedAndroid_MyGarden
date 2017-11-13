@@ -17,11 +17,12 @@ public class PlantWidgetProvider extends AppWidgetProvider {
     public static final int WATER_REQUEST_CODE = 1;
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
-                                int appWidgetId) {
+                                int imgRes, int appWidgetId) {
 
 
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.plant_widget);
+        views.setImageViewResource(R.id.widget_plant_image, imgRes); // update image
 
         // Create an Intent to launch MainActivity when clicked.
         Intent intent = new Intent(context, MainActivity.class);
@@ -30,10 +31,10 @@ public class PlantWidgetProvider extends AppWidgetProvider {
         // Widgets allow click handlers to only launch pending intents
         views.setOnClickPendingIntent(R.id.widget_plant_image, pendingIntent);
 
-        Intent startServiceIntent = new Intent(context, PlantWateringService.class);
-        startServiceIntent.setAction(PlantWateringService.ACTION_WATER_PLANTS);
+        Intent startWateringIntent = new Intent(context, PlantWateringService.class);
+        startWateringIntent.setAction(PlantWateringService.ACTION_WATER_PLANTS);
         PendingIntent wateringPendingIntent = PendingIntent.getService(context,
-                WATER_REQUEST_CODE, startServiceIntent,PendingIntent.FLAG_UPDATE_CURRENT);
+                WATER_REQUEST_CODE, startWateringIntent,PendingIntent.FLAG_UPDATE_CURRENT);
 
         views.setOnClickPendingIntent(R.id.widget_water_button, wateringPendingIntent);
 
@@ -43,12 +44,17 @@ public class PlantWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        // There may be multiple widgets active, so update all of them
-        for (int appWidgetId : appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId);
-        }
+        // start the intent service update widget action, the service takes care of updating the widgets UI
+        PlantWateringService.startActionWaterPlants(context);
     }
 
+    public static void updatePlantWidgets(Context context, AppWidgetManager appWidgetManager,
+                                          int imgRes, int[] appWidgetIds){
+        // There may be multiple widgets active, so update all of them
+        for (int appWidgetId : appWidgetIds){
+            updateAppWidget(context,appWidgetManager, imgRes, appWidgetId);
+        }
+    }
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
         // Perform any action when one or more Appwidget instances have been deleted
