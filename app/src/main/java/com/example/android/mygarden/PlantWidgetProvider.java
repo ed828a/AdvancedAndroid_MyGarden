@@ -33,6 +33,7 @@ public class PlantWidgetProvider extends AppWidgetProvider {
 
         Intent startWateringIntent = new Intent(context, PlantWateringService.class);
         startWateringIntent.setAction(PlantWateringService.ACTION_WATER_PLANTS);
+//        startWateringIntent.putExtra(PlantWateringService.EXTRA_PLANT_ID, plantId);
         PendingIntent wateringPendingIntent = PendingIntent.getService(context,
                 WATER_REQUEST_CODE, startWateringIntent,PendingIntent.FLAG_UPDATE_CURRENT);
 
