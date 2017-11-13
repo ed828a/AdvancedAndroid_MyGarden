@@ -45,7 +45,10 @@ public class PlantWidgetProvider extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // start the intent service update widget action, the service takes care of updating the widgets UI
-        PlantWateringService.startActionWaterPlants(context);
+        PlantWateringService.startActionUpdatePlantWidgets(context);
+//        for (int appWidgetId : appWidgetIds){
+//            updateAppWidget(context,appWidgetManager, R.drawable.grass, appWidgetId);
+//        }
     }
 
     public static void updatePlantWidgets(Context context, AppWidgetManager appWidgetManager,
