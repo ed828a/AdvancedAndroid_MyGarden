@@ -23,7 +23,7 @@ public class PlantWateringService extends IntentService {
 
     // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
     public static final String ACTION_WATER_PLANTS =
-            "com.example.android.mygarden.action.startActionWaterPlants";
+            "com.example.android.mygarden.action.water_plants";
 
     public PlantWateringService() {
         super("PlantWateringService");

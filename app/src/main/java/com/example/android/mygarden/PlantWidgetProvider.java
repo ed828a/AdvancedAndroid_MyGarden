@@ -21,7 +21,7 @@ public class PlantWidgetProvider extends AppWidgetProvider {
 
 
         // Construct the RemoteViews object
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.plant_widget_provider);
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.plant_widget);
 
         // Create an Intent to launch MainActivity when clicked.
         Intent intent = new Intent(context, MainActivity.class);
