@@ -69,6 +69,7 @@ public class PlantDetailActivity extends AppCompatActivity
         if ((timeNow - lastWatered) > PlantUtils.MAX_AGE_WITHOUT_WATER)
             return; // plant already dead
 
+
         ContentValues contentValues = new ContentValues();
         // Update the watered timestamp
         contentValues.put(PlantContract.PlantEntry.COLUMN_LAST_WATERED_TIME, timeNow);

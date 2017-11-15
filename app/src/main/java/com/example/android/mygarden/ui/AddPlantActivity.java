@@ -17,6 +17,7 @@ package com.example.android.mygarden.ui;
 */
 
 import android.content.ContentValues;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -64,7 +65,7 @@ public class AddPlantActivity extends AppCompatActivity {
         contentValues.put(PlantContract.PlantEntry.COLUMN_PLANT_TYPE, plantType);
         contentValues.put(PlantContract.PlantEntry.COLUMN_CREATION_TIME, timeNow);
         contentValues.put(PlantContract.PlantEntry.COLUMN_LAST_WATERED_TIME, timeNow);
-        getContentResolver().insert(PlantContract.PlantEntry.CONTENT_URI, contentValues);
+
         PlantWateringService.startActionUpdatePlantWidgets(this);
         // Close this activity
         finish();
