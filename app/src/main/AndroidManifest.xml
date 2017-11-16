@@ -16,7 +16,7 @@
         <activity
             android:name=".ui.MainActivity"
             android:label="@string/title_activity_my_garden"
-            android:launchMode="singleTop">
+            android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
