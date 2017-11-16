@@ -17,7 +17,6 @@ package com.example.android.mygarden.ui;
 */
 
 import android.content.ContentValues;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;

@@ -17,7 +17,6 @@ package com.example.android.mygarden.ui;
 */
 
 import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -61,7 +60,7 @@ public class PlantDetailActivity extends AppCompatActivity
     }
 
     public void onWaterButtonClick(View view) {
-        PlantWateringService.startActionWaterPlants(this, mPlantId);
+        PlantWateringService.startActionWaterPlant(this, mPlantId);
     }
 
     @Override

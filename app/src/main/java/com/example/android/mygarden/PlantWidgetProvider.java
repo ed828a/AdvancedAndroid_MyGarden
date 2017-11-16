@@ -31,6 +31,8 @@ public class PlantWidgetProvider extends AppWidgetProvider {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.plant_widget);
         views.setImageViewResource(R.id.widget_plant_image, imgRes); // update image
         views.setTextViewText(R.id.plant_Id_text, String.valueOf(plantId)); // update plantId
+        Log.i(LOG_TAG, "updateAppWidget() called, plantId=" + plantId);
+
         // show/hide water drop button
         if (allowWatering) {
             views.setViewVisibility(R.id.widget_water_button, View.VISIBLE);
@@ -52,7 +54,7 @@ public class PlantWidgetProvider extends AppWidgetProvider {
 
         Intent startWateringIntent = new Intent(context, PlantWateringService.class);
         startWateringIntent.setAction(PlantWateringService.ACTION_WATER_PLANT);
-        startWateringIntent.putExtra(EXTRA_PLANT_ID, plantId);
+        if (plantId != INVALID_PLANT_ID) startWateringIntent.putExtra(EXTRA_PLANT_ID, plantId);
         Log.i(LOG_TAG, "plantId = " + plantId);
         PendingIntent wateringPendingIntent = PendingIntent.getService(context,
                 WATER_REQUEST_CODE, startWateringIntent, PendingIntent.FLAG_UPDATE_CURRENT);
