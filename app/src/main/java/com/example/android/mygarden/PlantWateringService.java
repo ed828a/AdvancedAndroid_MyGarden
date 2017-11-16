@@ -152,7 +152,7 @@ public class PlantWateringService extends IntentService {
             plantId = cursor.getLong(plantIdIndex);
             cursor.close();
 
-            Log.i(LOG_TAG, "plandId = " + plantId);
+
             canWater = (timeNow - wateredAt) > MIN_AGE_BETWEEN_WATER &&
                     (timeNow - wateredAt) < MAX_AGE_WITHOUT_WATER;
             imgRes = PlantUtils.getPlantImageRes(this,
@@ -161,6 +161,7 @@ public class PlantWateringService extends IntentService {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(this, PlantWidgetProvider.class));
         //Now update all widgets
+        Log.i(LOG_TAG, "plandId = " + plantId);
         PlantWidgetProvider.updatePlantWidgets(this, appWidgetManager, imgRes, appWidgetIds, plantId, canWater);
     }
 }
