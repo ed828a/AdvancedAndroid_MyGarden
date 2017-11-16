@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.View;
 import android.widget.RemoteViews;
 
@@ -18,6 +19,7 @@ import static com.example.android.mygarden.ui.PlantDetailActivity.EXTRA_PLANT_ID
  * Implementation of App Widget functionality.
  */
 public class PlantWidgetProvider extends AppWidgetProvider {
+    public static final String LOG_TAG = PlantWidgetProvider.class.getSimpleName();
     public static final int PLANT_REQUEST_CODE = 0;
     public static final int WATER_REQUEST_CODE = 1;
 
@@ -28,9 +30,15 @@ public class PlantWidgetProvider extends AppWidgetProvider {
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.plant_widget);
         views.setImageViewResource(R.id.widget_plant_image, imgRes); // update image
-        views.setTextViewText(R.id.plant_Id_text, Long.toString(plantId));
+        views.setTextViewText(R.id.plant_Id_text, String.valueOf(plantId)); // update plantId
+        // show/hide water drop button
+        if (allowWatering) {
+            views.setViewVisibility(R.id.widget_water_button, View.VISIBLE);
+        } else {
+            views.setViewVisibility(R.id.widget_water_button, View.INVISIBLE);
+        }
 
-        Intent intent = null;
+        Intent intent;
         if (plantId == INVALID_PLANT_ID) {
             // Create an Intent to launch MainActivity when clicked.
             intent = new Intent(context, MainActivity.class);
@@ -42,18 +50,14 @@ public class PlantWidgetProvider extends AppWidgetProvider {
         // Widgets allow click handlers to only launch pending intents
         views.setOnClickPendingIntent(R.id.widget_plant_image, pendingIntent);
 
-        if (allowWatering) {
-            views.setViewVisibility(R.id.widget_water_button, View.VISIBLE);
-            Intent startWateringIntent = new Intent(context, PlantWateringService.class);
-            startWateringIntent.setAction(PlantWateringService.ACTION_WATER_PLANT);
-            startWateringIntent.putExtra(EXTRA_PLANT_ID, plantId);
-            PendingIntent wateringPendingIntent = PendingIntent.getService(context,
-                    WATER_REQUEST_CODE, startWateringIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent startWateringIntent = new Intent(context, PlantWateringService.class);
+        startWateringIntent.setAction(PlantWateringService.ACTION_WATER_PLANT);
+        startWateringIntent.putExtra(EXTRA_PLANT_ID, plantId);
+        Log.i(LOG_TAG, "plantId = " + plantId);
+        PendingIntent wateringPendingIntent = PendingIntent.getService(context,
+                WATER_REQUEST_CODE, startWateringIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-            views.setOnClickPendingIntent(R.id.widget_water_button, wateringPendingIntent);
-        } else {
-            views.setViewVisibility(R.id.widget_water_button, View.INVISIBLE);
-        }
+        views.setOnClickPendingIntent(R.id.widget_water_button, wateringPendingIntent);
 
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
@@ -61,24 +65,20 @@ public class PlantWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.plant_widget);
-//        String plantIdString = views.get
-        // start the intent service update widget action, the service takes care of updating the widgets UI
+        //Start the intent service update widget action, the service takes care of updating the widgets UI
         PlantWateringService.startActionUpdatePlantWidgets(context);
-//        for (int appWidgetId : appWidgetIds){
-//            updateAppWidget(context,appWidgetManager, R.drawable.grass, appWidgetId);
-//        }
     }
 
     public static void updatePlantWidgets(Context context, AppWidgetManager appWidgetManager,
                                           int imgRes, int[] appWidgetIds,
-                                          long plantId, boolean isAllowWatering){
+                                          long plantId, boolean isAllowWatering) {
         // There may be multiple widgets active, so update all of them
-        for (int appWidgetId : appWidgetIds){
-            updateAppWidget(context,appWidgetManager, imgRes, appWidgetId,
+        for (int appWidgetId : appWidgetIds) {
+            updateAppWidget(context, appWidgetManager, imgRes, appWidgetId,
                     plantId, isAllowWatering);
         }
     }
+
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
         // Perform any action when one or more Appwidget instances have been deleted

@@ -18,6 +18,7 @@ import static com.example.android.mygarden.provider.PlantContract.BASE_CONTENT_U
 import static com.example.android.mygarden.provider.PlantContract.INVALID_PLANT_ID;
 import static com.example.android.mygarden.provider.PlantContract.PATH_PLANTS;
 import static com.example.android.mygarden.ui.PlantDetailActivity.EXTRA_PLANT_ID;
+import static com.example.android.mygarden.utils.PlantUtils.MAX_AGE_WITHOUT_WATER;
 import static com.example.android.mygarden.utils.PlantUtils.MIN_AGE_BETWEEN_WATER;
 
 /**
@@ -31,8 +32,6 @@ public class PlantWateringService extends IntentService {
     private static final String LOG_TAG = PlantWateringService.class.getSimpleName();
 
     // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
-    public static final String ACTION_WATER_PLANTS =
-            "com.example.android.mygarden.action.water_plants";
     public static final String ACTION_WATER_PLANT =
             "com.example.android.mygarden.action.water_plant";
     public static final String ACTION_UPDATE_PLANT_WIDGETS =
@@ -68,8 +67,10 @@ public class PlantWateringService extends IntentService {
             Log.i(LOG_TAG, "onHandleIntent called, action: " + action);
 
             if (ACTION_WATER_PLANT.equals(action)) {
-                long plantId = intent.getLongExtra(EXTRA_PLANT_ID, INVALID_PLANT_ID);
-                handleActionWaterPlant(plantId);
+                if (intent.hasExtra(EXTRA_PLANT_ID)) {
+                    long plantId = intent.getLongExtra(EXTRA_PLANT_ID, INVALID_PLANT_ID);
+                    handleActionWaterPlant(plantId);
+                }
             } else if (ACTION_UPDATE_PLANT_WIDGETS.equals(action)){
                 handleActionUpdatePlantWidgets();
             }
@@ -81,8 +82,7 @@ public class PlantWateringService extends IntentService {
      * parameters.
      */
     private void handleActionWaterPlant(long plantId) {
-//        Uri PLANTS_URI = BASE_CONTENT_URI.buildUpon()
-//                .appendPath(PATH_PLANTS).build();
+        Log.i(LOG_TAG, "handleActionWaterPlant() called, plantId = " + plantId);
         Uri SINGLE_PLANT_URI = ContentUris.withAppendedId(
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_PLANTS).build(), plantId);
         ContentValues contentValues = new ContentValues();
@@ -95,7 +95,8 @@ public class PlantWateringService extends IntentService {
                 contentValues,
                 PlantContract.PlantEntry.COLUMN_LAST_WATERED_TIME + ">?",
                 new String[]{String.valueOf(latestWateringTime)});
-
+        // always update widgets after watering plants
+        startActionUpdatePlantWidgets(this);
     }
 
     /**
@@ -104,6 +105,7 @@ public class PlantWateringService extends IntentService {
      */
     private void handleActionUpdatePlantWidgets() {
         Uri PLANTS_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_PLANTS).build();
+        // the first object that the cursor points to is the oldest last-watered-time obj
         Cursor cursor = getContentResolver().query(
                 PLANTS_URI,
                 null,
@@ -115,7 +117,7 @@ public class PlantWateringService extends IntentService {
         // extract the plant details
         int imgRes = R.drawable.grass; // default image in case our garden is empty
         long plantId = INVALID_PLANT_ID;
-        boolean isAllowWatering = true;
+        boolean isAllowWatering = false; // default to hide the water drop button
         if (cursor != null && cursor.getCount() > 0) {
             cursor.moveToFirst();
             int createTimeIndex = cursor.getColumnIndex(PlantContract.PlantEntry.COLUMN_CREATION_TIME);
@@ -127,12 +129,15 @@ public class PlantWateringService extends IntentService {
             long createdAt = cursor.getLong(createTimeIndex);
             int plantType = cursor.getInt(plantTypeIndex);
             plantId = cursor.getLong(plantIdIndex);
-            if (timeNow-wateredAt >= MIN_AGE_BETWEEN_WATER){
+            cursor.close();
+
+            if ((timeNow-wateredAt) >= MIN_AGE_BETWEEN_WATER
+                    && (timeNow - wateredAt) < MAX_AGE_WITHOUT_WATER){
                 isAllowWatering = true;
             } else {
                 isAllowWatering = false;
             }
-            cursor.close();
+
             imgRes = PlantUtils.getPlantImageRes(this,
                     timeNow - createdAt, timeNow - wateredAt, plantType);
         }
