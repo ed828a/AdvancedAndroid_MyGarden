@@ -144,7 +144,14 @@ public class PlantContentProvider extends ContentProvider {
                 break;
             // Default exception
             default:
-                throw new UnsupportedOperationException("Unknown uri: " + uri);
+//                throw new UnsupportedOperationException("Unknown uri: " + uri);
+                retCursor = db.query(PlantEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
         }
 
         // Set a notification URI on the Cursor and return that Cursor
