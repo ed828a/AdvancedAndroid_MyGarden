@@ -5,12 +5,14 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.RemoteViews;
 
 import com.example.android.mygarden.ui.MainActivity;
 import com.example.android.mygarden.ui.PlantDetailActivity;
+
 
 import static com.example.android.mygarden.provider.PlantContract.INVALID_PLANT_ID;
 import static com.example.android.mygarden.ui.PlantDetailActivity.EXTRA_PLANT_ID;
@@ -26,6 +28,23 @@ public class PlantWidgetProvider extends AppWidgetProvider {
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int imgRes, int appWidgetId, long plantId, boolean allowWatering) {
 
+        // Get current width to decide on single plant vs garden grid view
+        Bundle options = appWidgetManager.getAppWidgetOptions(appWidgetId);
+        int width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH);
+        RemoteViews remoteViews;
+        // single widget if under 300dp
+        if (width < 300){
+            remoteViews = getSinglePlantRemoteView(context, imgRes, plantId, allowWatering);
+        } else {
+            remoteViews = getGardenGridRemoteView(context);
+        }
+
+        // Instruct the widget manager to update the widget
+        appWidgetManager.updateAppWidget(appWidgetId, remoteViews);
+    }
+
+    private static  RemoteViews getSinglePlantRemoteView(Context context, int imgRes,
+                                                 long plantId, boolean showWater){
 
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.plant_widget);
@@ -34,7 +53,7 @@ public class PlantWidgetProvider extends AppWidgetProvider {
         Log.i(LOG_TAG, "updateAppWidget() called, plantId=" + plantId);
 
         // show/hide water drop button
-        if (allowWatering) {
+        if (showWater) {
             views.setViewVisibility(R.id.widget_water_button, View.VISIBLE);
         } else {
             views.setViewVisibility(R.id.widget_water_button, View.INVISIBLE);
@@ -61,8 +80,27 @@ public class PlantWidgetProvider extends AppWidgetProvider {
 
         views.setOnClickPendingIntent(R.id.widget_water_button, wateringPendingIntent);
 
-        // Instruct the widget manager to update the widget
-        appWidgetManager.updateAppWidget(appWidgetId, views);
+        return  views;
+    }
+
+    private static RemoteViews getGardenGridRemoteView(Context context){
+
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_grid_view);
+
+        // set the GridWidgetService intent to act as the adapter for the GridView
+        Intent intent = new Intent(context, GridWidgetService.class);
+        views.setRemoteAdapter(R.id.widget_grid_view, intent);
+
+        // set the PlantDetailActivity intent to launch when clicked
+        Intent appIntent = new Intent(context, PlantDetailActivity.class);
+        PendingIntent appPendingIntent = PendingIntent.getActivity(context, 0,
+                                            appIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        views.setPendingIntentTemplate(R.id.widget_grid_view, appPendingIntent);
+
+        // handle empty gardens
+        views.setEmptyView(R.id.widget_grid_view, R.id.empty_view);
+
+        return views;
     }
 
     @Override
@@ -79,6 +117,14 @@ public class PlantWidgetProvider extends AppWidgetProvider {
             updateAppWidget(context, appWidgetManager, imgRes, appWidgetId,
                     plantId, isAllowWatering);
         }
+    }
+
+    @Override
+    public void onAppWidgetOptionsChanged(Context context,
+                                          AppWidgetManager appWidgetManager,
+                                          int appWidgetId, Bundle newOptions) {
+        PlantWateringService.startActionUpdatePlantWidgets(context);
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions);
     }
 
     @Override
